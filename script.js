@@ -45,10 +45,11 @@ function init () {
     //Renderer 
     renderer = new THREE.WebGLRenderer({canvas : canvas, antialias : true})
 
-
+    camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     renderer.render(scene, camera)
+
     // document.body.appendChild(renderer.domElement)
 }
 
@@ -69,7 +70,7 @@ function generateBox (x, y, z , width, depth) {
     const geometry = new THREE.BoxGeometry(width, boxHeight, depth)
 
     const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100% , 50% )`)
-    const material = new THREE.MeshLambertMaterial({color})
+    const material = new THREE.MeshStandardMaterial({color})
 
 
     const mesh = new THREE.Mesh(geometry , material)
