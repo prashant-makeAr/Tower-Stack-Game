@@ -83,8 +83,7 @@ function generateBox (x, y, z , width, depth) {
     }
 }
 
-
-window.addEventListener('click' , () => {
+function startGame () {
     if(!gameStarted) {
         renderer.setAnimationLoop(animation)
         gameStarted = true
@@ -94,7 +93,6 @@ window.addEventListener('click' , () => {
 
         //Next Layer 
         const nextX = direction === 'x' ? 0 : -10
-
         const nextZ = direction === 'z' ? 0 : - 10 
         const newWidth = originalBoxSize 
         const newDepth = originalBoxSize 
@@ -102,7 +100,22 @@ window.addEventListener('click' , () => {
 
         addLayer(nextX, nextZ, newWidth, newDepth, nextDirection)
     }
+}
+
+window.addEventListener('click' , startGame)
+window.addEventListener('keydown' , (e) => {
+    if(e.key === ' '){
+        startGame()
+    }
 })
+
+window.addEventListener('keydown', (event) => {
+    if (event.key === 'r') {
+        location.reload();
+    }
+});
+
+
 
 function animation () {
     const speed = 0.15 
