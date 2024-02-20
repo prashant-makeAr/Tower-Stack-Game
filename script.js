@@ -18,8 +18,10 @@ init();
 function init() {
   //Initialise CANNON.js
   world = new CANNON.World();
+  world.broadphase = new CANNON.SAPBroadphase(world);
+
   world.gravity.set(0, -9.8, 0);
-  world.solver.iterations = 40;
+  // world.solver.iterations = 40;
 
   //Initialise THREE.js
   scene = new THREE.Scene();
@@ -87,27 +89,34 @@ function generateBox(x, y, z, width, depth, ifFalls) {
   scene.add(mesh);
 
   //CANNON.js
+
+  const defaultMaterial = new CANNON.Material("default");
+  const overHangingMaterial = new CANNON.Material("plastic");
+
+  const contactMaterial = new CANNON.ContactMaterial(
+    defaultMaterial,
+    overHangingMaterial,
+    {
+      friction: 0.1,
+      restitution: 0.8,
+    }
+  );
+
+  world.addContactMaterial(contactMaterial);
+
   const shape = new CANNON.Box(
     new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
   );
 
-  const defaultMaterial = new CANNON.Material("default");
-
-  const defaultContactMaterial = new CANNON.ContactMaterial(
-    defaultMaterial,
-    defaultMaterial,
-    {
-      friction: 0.1,
-      restitution: 0.5,
-    }
-  );
-
-  world.addContactMaterial(defaultContactMaterial);
-  world.defaultContactMaterial = defaultContactMaterial;
-
   let mass = ifFalls ? 5 : 1;
-  const body = new CANNON.Body({ mass, shape, material: defaultMaterial });
-  body.position.set(x, y, z);
+  const body = new CANNON.Body({
+    mass,
+    shape,
+    position: new CANNON.Vec3(x, y, z),
+    material: ifFalls ? overHangingMaterial : defaultMaterial,
+  });
+  // body.position.set(x, y, z);
+  body.addShape(shape);
   world.addBody(body);
 
   return {
@@ -220,17 +229,13 @@ function animation() {
     camera.position.y += deltaTime * speed * 50;
   }
 
-  updatePhysics();
-
-  renderer.render(scene, camera);
-}
-
-function updatePhysics() {
-  world.step(1 / 60);
+  world.step(1 / 60, deltaTime, 3);
   overhangStack.forEach((element) => {
     element.threejs.position.copy(element.cannonjs.position);
     element.threejs.quaternion.copy(element.cannonjs.quaternion);
   });
+
+  renderer.render(scene, camera);
 }
 
 window.addEventListener("resize", () => {
