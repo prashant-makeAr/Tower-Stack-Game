@@ -91,8 +91,22 @@ function generateBox(x, y, z, width, depth, ifFalls) {
     new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
   );
 
+  const defaultMaterial = new CANNON.Material("default");
+
+  const defaultContactMaterial = new CANNON.ContactMaterial(
+    defaultMaterial,
+    defaultMaterial,
+    {
+      friction: 0.1,
+      restitution: 0.5,
+    }
+  );
+
+  world.addContactMaterial(defaultContactMaterial);
+  world.defaultContactMaterial = defaultContactMaterial;
+
   let mass = ifFalls ? 5 : 1;
-  const body = new CANNON.Body({ mass, shape });
+  const body = new CANNON.Body({ mass, shape, material: defaultMaterial });
   body.position.set(x, y, z);
   world.addBody(body);
 
