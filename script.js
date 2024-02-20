@@ -7,7 +7,6 @@ const originalBoxSize = 4;
 const boxHeight = 1;
 let gameStarted = false;
 let stack = [];
-let overHangs = [];
 
 const clock = new THREE.Clock();
 
@@ -42,7 +41,7 @@ function init() {
     100
   );
 
-  camera.position.set(30, 30, 30);
+  camera.position.set(15, 15, 15);
   camera.lookAt(0, 0, 0);
 
   //Renderer
@@ -117,23 +116,6 @@ function startGame() {
       topLayer.threejs.scale[direction] = overlap / size;
       topLayer.threejs.position[direction] -= delta / 2;
 
-      //Over Hanging Part
-      //   const overHangShift = (overlap / 2 + overHangSize / 2) * Math.sign(delta);
-      //   const overHangX =
-      //     direction == "x"
-      //       ? topLayer.threejs.position.x + overHangShift
-      //       : topLayer.threejs.position.x;
-
-      //   const overHangZ =
-      //     direction == "z"
-      //       ? topLayer.threejs.position.z + overHangShift
-      //       : topLayer.threejs.position.z;
-
-      //   const overHangWidth = direction == "x" ? overHangSize : newWidth;
-      //   const overHangDepth = direction == "z" ? overHangSize : newDepth;
-
-      //   addOverHang(overHangX, overHangZ, overHangWidth, overHangDepth);
-
       //Next Layer
       const nextX = direction === "x" ? 0 : -10;
       const nextZ = direction === "z" ? 0 : -10;
@@ -142,21 +124,16 @@ function startGame() {
     }
 
     //Next Layer
-    // const nextX = direction === "x" ? 0 : -10;
-    // const nextZ = direction === "z" ? 0 : -10;
+    const nextX = direction === "x" ? 0 : -10;
+    const nextZ = direction === "z" ? 0 : -10;
     // const newWidth = originalBoxSize;
     // const newDepth = originalBoxSize;
-    // const nextDirection = direction === "x" ? "z" : "x";
+    const nextDirection = direction === "x" ? "z" : "x";
 
-    // addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+    addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
   }
 }
 
-function addOverHang(x, z, width, depth) {
-  const y = boxHeight * (stack.length - 1);
-  const overHang = generateBox(x, y, z, width, depth);
-  overHangs.push(overHang);
-}
 window.addEventListener("click", startGame);
 window.addEventListener("keydown", (e) => {
   if (e.key === " ") {
@@ -179,14 +156,8 @@ function animation() {
 
   const topLayer = stack[stack.length - 1];
 
-  //   const amplitude = 0.1;
-
-  //   const oscillation = Math.sin(Date.now() * 0.001) * amplitude;
-
   topLayer.threejs.position[topLayer.direction] += deltaTime * speed * 50;
 
-  //   topLayer.threejs.position[topLayer.direction] =
-  //     topLayer.threejs.position[topLayer.direction] + oscillation;
   // 4 is the initial camera height
   if (camera.position.y < boxHeight * (stack.length - 2) + 16) {
     camera.position.y += deltaTime * speed * 50;
