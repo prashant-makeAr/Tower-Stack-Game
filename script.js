@@ -1,18 +1,27 @@
 import * as THREE from "three";
+import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 
 const canvas = document.querySelector("#canvas");
 let camera, scene, renderer;
+let world;
 
 const originalBoxSize = 4;
 const boxHeight = 1;
 let gameStarted = false;
 let stack = [];
+let overhangStack = [];
 
 const clock = new THREE.Clock();
 
 init();
 
 function init() {
+  //Initialise CANNON.js
+  world = new CANNON.World();
+  world.gravity.set(0, -9.8, 0);
+  world.solver.iterations = 40;
+
+  //Initialise THREE.js
   scene = new THREE.Scene();
 
   //Foundation
@@ -58,7 +67,7 @@ function init() {
 function addLayer(x, z, width, depth, direction) {
   const y = boxHeight + stack.length; // Add the box one layer higher
 
-  const layer = generateBox(x, y, z, width, depth);
+  const layer = generateBox(x, y, z, width, depth, false);
   layer.direction = direction;
 
   // console.log(layer);
@@ -66,7 +75,8 @@ function addLayer(x, z, width, depth, direction) {
   stack.push(layer);
 }
 
-function generateBox(x, y, z, width, depth) {
+function generateBox(x, y, z, width, depth, ifFalls) {
+  // THREE.js
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
 
   const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100% , 50% )`);
@@ -76,8 +86,19 @@ function generateBox(x, y, z, width, depth) {
   mesh.position.set(x, y, z);
   scene.add(mesh);
 
+  //CANNON.js
+  const shape = new CANNON.Box(
+    new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
+  );
+
+  let mass = ifFalls ? 5 : 1;
+  const body = new CANNON.Body({ mass, shape });
+  body.position.set(x, y, z);
+  world.addBody(body);
+
   return {
     threejs: mesh,
+    cannonjs: body,
     width: width,
     depth: depth,
   };
@@ -116,24 +137,45 @@ function startGame() {
       topLayer.threejs.scale[direction] = overlap / size;
       topLayer.threejs.position[direction] -= delta / 2;
 
+      //Update Cannon.js
+      topLayer.cannonjs.position[direction] -= delta / 2;
+
+      //Over Hanging
+      const overHangShift = overlap / 2 + overHangSize / 2 + Math.sign(delta);
+      const overHangX =
+        direction == "x"
+          ? topLayer.threejs.position.x + overHangShift
+          : topLayer.threejs.position.x;
+
+      const overHangZ =
+        direction == "z"
+          ? topLayer.threejs.position.z + overHangShift
+          : topLayer.threejs.position.z;
+      const overHangWidth = direction == "x" ? overHangSize : newWidth;
+
+      const overHangDepth = direction == "z" ? overHangSize : newDepth;
+
+      addOverHang(overHangX, overHangZ, overHangWidth, overHangDepth);
       //Next Layer
-      const nextX = direction === "x" ? 0 : -10;
-      const nextZ = direction === "z" ? 0 : -10;
+      const nextX = direction === "x" ? topLayer.threejs.position.x : -10;
+      const nextZ = direction === "z" ? topLayer.threejs.position.z : -10;
       const nextDirection = direction === "x" ? "z" : "x";
       addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
     }
 
     //Next Layer
-    const nextX = direction === "x" ? 0 : -10;
-    const nextZ = direction === "z" ? 0 : -10;
     // const newWidth = originalBoxSize;
     // const newDepth = originalBoxSize;
-    const nextDirection = direction === "x" ? "z" : "x";
-
-    addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+    // const nextDirection = direction === "x" ? "z" : "x";
+    // addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
   }
 }
 
+function addOverHang(x, z, width, depth) {
+  const y = boxHeight * (stack.length - 1);
+  const overHang = generateBox(x, y, z, width, depth, true);
+  overhangStack.push(overHang);
+}
 window.addEventListener("click", startGame);
 window.addEventListener("keydown", (e) => {
   if (e.key === " ") {
@@ -157,13 +199,24 @@ function animation() {
   const topLayer = stack[stack.length - 1];
 
   topLayer.threejs.position[topLayer.direction] += deltaTime * speed * 50;
+  topLayer.cannonjs.position[topLayer.direction] += deltaTime * speed * 50;
 
   // 4 is the initial camera height
   if (camera.position.y < boxHeight * (stack.length - 2) + 16) {
     camera.position.y += deltaTime * speed * 50;
   }
 
+  updatePhysics();
+
   renderer.render(scene, camera);
+}
+
+function updatePhysics() {
+  world.step(1 / 60);
+  overhangStack.forEach((element) => {
+    element.threejs.position.copy(element.cannonjs.position);
+    element.threejs.quaternion.copy(element.cannonjs.quaternion);
+  });
 }
 
 window.addEventListener("resize", () => {
