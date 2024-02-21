@@ -215,18 +215,24 @@ window.addEventListener("keydown", (event) => {
 let time = Date.now();
 
 function animation() {
-  const speed = 0.15;
+  const speed = 0.8;
 
   const deltaTime = clock.getDelta();
+  const elapsedTime = clock.getElapsedTime();
 
   const topLayer = stack[stack.length - 1];
 
-  topLayer.threejs.position[topLayer.direction] += deltaTime * speed * 50;
-  topLayer.cannonjs.position[topLayer.direction] += deltaTime * speed * 50;
+  // topLayer.threejs.position[topLayer.direction] += deltaTime * speed * 50;
+  // topLayer.cannonjs.position[topLayer.direction] += deltaTime * speed * 50;
+
+  topLayer.threejs.position[topLayer.direction] =
+    Math.cos(elapsedTime * speed) * -10;
+  topLayer.cannonjs.position[topLayer.direction] =
+    Math.cos(elapsedTime * speed) * 1.5;
 
   // 4 is the initial camera height
-  if (camera.position.y < boxHeight * (stack.length - 2) + 16) {
-    camera.position.y += deltaTime * speed * 50;
+  if (camera.position.y < boxHeight * (stack.length - 2) + 15) {
+    camera.position.y += elapsedTime * 0.02;
   }
 
   world.step(1 / 60, deltaTime, 3);
