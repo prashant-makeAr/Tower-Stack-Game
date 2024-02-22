@@ -41,13 +41,13 @@ function init() {
 
   //Camera
   const height = 25;
-  const aspect = window.innerWidth / window.innerHeight;
   const width = height * (window.innerWidth / window.innerHeight);
   camera = new THREE.OrthographicCamera(
     width / -2,
     width / 2,
     height / 2,
     height / -2,
+
     1,
     100
   );
@@ -57,8 +57,6 @@ function init() {
 
   //Renderer
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-
-  camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   renderer.render(scene, camera);
@@ -215,7 +213,7 @@ window.addEventListener("keydown", (event) => {
 let time = Date.now();
 
 function animation() {
-  const speed = 0.8;
+  let speed = 0.8;
 
   const deltaTime = clock.getDelta();
   const elapsedTime = clock.getElapsedTime();
@@ -245,11 +243,18 @@ function animation() {
 }
 
 window.addEventListener("resize", () => {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const height = 25;
+  const width = height * (window.innerWidth / window.innerHeight);
+
+  camera.left = width / -2;
+  camera.right = width / 2;
+  camera.top = height / 2;
+  camera.bottom = height / -2;
 
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
+  renderer.render(scene, camera);
 });
 
 window.addEventListener("dblclick", () => {
