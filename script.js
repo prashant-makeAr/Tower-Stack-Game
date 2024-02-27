@@ -1,4 +1,9 @@
 const scoreElement = document.getElementById("score");
+const startScreen = document.getElementById("start-screen");
+const startButton = document.getElementById("start-button");
+const gameEnd = document.getElementById("gameEnd");
+const endBtn = document.getElementById("endBtn");
+const finalScore = document.getElementById("finalScore");
 import * as THREE from "three";
 import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 
@@ -6,6 +11,7 @@ let score = 0;
 const canvas = document.querySelector("#canvas");
 let camera, scene, renderer;
 let world;
+let overlap;
 
 const originalBoxSize = 4;
 const boxHeight = 1;
@@ -17,10 +23,51 @@ const clock = new THREE.Clock();
 
 init();
 
+// Function to handle start button click
+function handleStartButtonClick() {
+  startScreen.style.display = "none"; // Hide start screen
+  document.getElementById("canvas").style.display = "block"; // Show game canvas
+  startGame(); // Start the game
+}
+
+startButton.addEventListener("click", handleStartButtonClick);
+
 function updateScore(newScore) {
   score += newScore;
   scoreElement.textContent = `Score: ${score}`;
 }
+
+function endGame() {
+  gameEnd.style.display = "flex";
+  finalScore.textContent = `Your Score - ${score}`;
+  endBtn.addEventListener("click", handleReplayButtonClick);
+}
+
+function handleReplayButtonClick() {
+  gameStarted = false;
+  score = 0;
+  updateScore(score);
+
+  // stack.forEach((layer) => {
+  //   scene.remove(layer.threejs);
+  //   world.remove(layer.cannonjs);
+  // });
+  // stack = [];
+
+  // overhangStack.forEach((overhang) => {
+  //   scene.remove(overhang.threejs);
+  //   world.remove(overhang.cannonjs);
+  // });
+  // overhangStack = [];
+
+  gameEnd.style.display = "none";
+  // canvas.style.display = "none";
+  startScreen.style.display = "flex";
+
+  window.location.reload();
+}
+
+endBtn.addEventListener("click", handleReplayButtonClick);
 
 function init() {
   //Initialise CANNON.js
@@ -151,7 +198,12 @@ function calculate_overlap_score(overlap_percentage) {
 function startGame() {
   if (!gameStarted) {
     renderer.setAnimationLoop(animation);
-    gameStarted = true;
+    // startAnimation();
+    // gameStarted = true;
+
+    window.addEventListener("click", () => {
+      gameStarted = true;
+    });
   } else {
     const topLayer = stack[stack.length - 1];
     const previousLayer = stack[stack.length - 2];
@@ -166,7 +218,7 @@ function startGame() {
 
     const size = direction == "x" ? topLayer.width : topLayer.depth;
 
-    const overlap = size - overHangSize;
+    overlap = size - overHangSize;
 
     if (overlap > 0) {
       const overlapPercentage = (overlap / size) * 100;
@@ -219,6 +271,10 @@ function startGame() {
       const nextZ = direction === "z" ? topLayer.threejs.position.z : -10;
       const nextDirection = direction === "x" ? "z" : "x";
       addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+    } else if (overlap <= 0) {
+      endGame();
+      renderer.setAnimationLoop(null);
+      return;
     }
 
     //Next Layer
