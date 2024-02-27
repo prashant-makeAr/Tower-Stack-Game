@@ -21,7 +21,7 @@ function init() {
   world.broadphase = new CANNON.SAPBroadphase(world);
 
   world.gravity.set(0, -9.8, 0);
-  // world.solver.iterations = 40;
+  world.solver.iterations = 40;
 
   //Initialise THREE.js
   scene = new THREE.Scene();
@@ -47,9 +47,8 @@ function init() {
     width / 2,
     height / 2,
     height / -2,
-
     1,
-    100
+    500
   );
 
   camera.position.set(15, 15, 15);
@@ -60,8 +59,6 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   renderer.render(scene, camera);
-
-  // document.body.appendChild(renderer.domElement)
 }
 
 function addLayer(x, z, width, depth, direction) {
@@ -88,34 +85,49 @@ function generateBox(x, y, z, width, depth, ifFalls) {
 
   //CANNON.js
 
-  const defaultMaterial = new CANNON.Material("default");
-  const overHangingMaterial = new CANNON.Material("plastic");
+  // const defaultMaterial = new CANNON.Material();
+  // const overHangingMaterial = new CANNON.Material();
 
-  const contactMaterial = new CANNON.ContactMaterial(
+  const defaultMaterial = new CANNON.Material("default");
+
+  const defaultContactMaterial = new CANNON.ContactMaterial(
     defaultMaterial,
-    overHangingMaterial,
+    defaultMaterial,
     {
-      friction: 0.1,
+      friction: 0.01,
       restitution: 0.8,
     }
   );
 
-  world.addContactMaterial(contactMaterial);
+  // // Fine-tune contact material properties
+  // defaultContactMaterial.friction = 0.5; // Adjust friction
+  // defaultContactMaterial.restitution = 0.3; // Adjust restitution
+  // defaultContactMaterial.contactEquationStiffness = 1e8; // Adjust stiffness
+  // defaultContactMaterial.contactEquationRelaxation = 3; // Adjust relaxation
+
+  world.addContactMaterial(defaultContactMaterial);
+  world.defaultContactMaterial = defaultContactMaterial;
 
   const shape = new CANNON.Box(
     new CANNON.Vec3(width / 2, boxHeight / 2, depth / 2)
   );
 
-  let mass = ifFalls ? 5 : 1;
+  let mass = ifFalls ? 5 : 0;
   const body = new CANNON.Body({
-    mass,
-    shape,
+    mass: mass,
     position: new CANNON.Vec3(x, y, z),
-    material: ifFalls ? overHangingMaterial : defaultMaterial,
+    shape: shape,
+    // material: ifFalls ? overHangingMaterial : defaultMaterial,
   });
   // body.position.set(x, y, z);
   body.addShape(shape);
   world.addBody(body);
+
+  // Adjust collision margins for each shape in the body
+  // const collisionMargin = 0.01; // Adjust as necessary
+  // body.shapes.forEach((shape) => {
+  //   shape.collisionMargin = collisionMargin;
+  // });
 
   return {
     threejs: mesh,
@@ -159,10 +171,12 @@ function startGame() {
       topLayer.threejs.position[direction] -= delta / 2;
 
       //Update Cannon.js
+      // topLayer.cannonjs.scale[direction] = overlap / size;
       topLayer.cannonjs.position[direction] -= delta / 2;
 
       //Over Hanging
-      const overHangShift = overlap / 2 + overHangSize / 2 + Math.sign(delta);
+      const overHangShift = (overlap / 2 + overHangSize / 2) * Math.sign(delta);
+
       const overHangX =
         direction == "x"
           ? topLayer.threejs.position.x + overHangShift
@@ -194,9 +208,51 @@ function startGame() {
 
 function addOverHang(x, z, width, depth) {
   const y = boxHeight * (stack.length - 1);
-  const overHang = generateBox(x, y, z, width, depth, true);
+
+  const topLayer = stack[stack.length - 1];
+  const direction = topLayer.direction;
+  const delta = topLayer.threejs.position[direction] - topLayer.width / 2;
+
+  let overHangX, overHangZ;
+  // if (direction === "x") {
+  //   overHangX = delta < x ? x + width / 2 : x - width / 2;
+  //   overHangZ = z;
+  // } else {
+  //   overHangX = x;
+  //   overHangZ = delta < z ? z + depth / 2 : z - depth / 2;
+  // }
+
+  if (direction === "x") {
+    if (x > topLayer.threejs.position.x) {
+      overHangX = x + width / 2 + 0.2;
+    } else {
+      overHangX = x - width / 2 - 0.2;
+    }
+    overHangZ = z;
+  } else {
+    if (z > topLayer.threejs.position.z) {
+      overHangZ = z + depth / 2 + 0.2;
+    } else {
+      overHangZ = z - depth / 2 - 0.2;
+    }
+    overHangX = x;
+  }
+
+  const overHang = generateBox(overHangX, y, overHangZ, width, depth, true);
+
+  // const overHang = generateBox(x, y, z, width, depth, true);
+
+  // console.log(
+  //   "Overhanging",
+  //   overhangStack.length > 0
+  //     ? overhangStack[overhangStack.length - 1].threejs.position
+  //     : "Empty"
+  // );
+  // console.log("Stack", stack[stack.length - 1].threejs.position);
+
   overhangStack.push(overHang);
 }
+
 window.addEventListener("click", startGame);
 window.addEventListener("keydown", (e) => {
   if (e.key === " ") {
@@ -212,11 +268,16 @@ window.addEventListener("keydown", (event) => {
 
 let time = Date.now();
 
+let oldElapsedTime = 0;
+
 function animation() {
   let speed = 0.8;
 
   const deltaTime = clock.getDelta();
   const elapsedTime = clock.getElapsedTime();
+
+  const delta = elapsedTime - oldElapsedTime;
+  oldElapsedTime = elapsedTime;
 
   const topLayer = stack[stack.length - 1];
 
@@ -226,18 +287,19 @@ function animation() {
   topLayer.threejs.position[topLayer.direction] =
     Math.cos(elapsedTime * speed) * -10;
   topLayer.cannonjs.position[topLayer.direction] =
-    Math.cos(elapsedTime * speed) * 1.5;
+    Math.cos(elapsedTime * speed) * -10;
 
-  // 4 is the initial camera height
-  if (camera.position.y < boxHeight * (stack.length - 2) + 15) {
-    camera.position.y += elapsedTime * 0.02;
-  }
-
-  world.step(1 / 60, deltaTime, 3);
+  world.step(1 / 60, delta, 3);
   overhangStack.forEach((element) => {
     element.threejs.position.copy(element.cannonjs.position);
     element.threejs.quaternion.copy(element.cannonjs.quaternion);
   });
+
+  // 4 is the initial camera height
+  let cameraTargetY = boxHeight * (stack.length - 2) + 15;
+  if (camera.position.y < cameraTargetY) {
+    camera.position.y += elapsedTime * 0.02;
+  }
 
   renderer.render(scene, camera);
 }
