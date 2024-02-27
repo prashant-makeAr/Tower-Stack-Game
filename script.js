@@ -50,17 +50,17 @@ function handleReplayButtonClick() {
   score = 0;
   updateScore(score);
 
-  // stack.forEach((layer) => {
-  //   scene.remove(layer.threejs);
-  //   world.remove(layer.cannonjs);
-  // });
-  // stack = [];
+  stack.forEach((layer) => {
+    scene.remove(layer.threejs);
+    world.remove(layer.cannonjs);
+  });
+  stack = [];
 
-  // overhangStack.forEach((overhang) => {
-  //   scene.remove(overhang.threejs);
-  //   world.remove(overhang.cannonjs);
-  // });
-  // overhangStack = [];
+  overhangStack.forEach((overhang) => {
+    scene.remove(overhang.threejs);
+    world.remove(overhang.cannonjs);
+  });
+  overhangStack = [];
 
   gameEnd.style.display = "none";
   // canvas.style.display = "none";
