@@ -1,6 +1,8 @@
+const scoreElement = document.getElementById("score");
 import * as THREE from "three";
 import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 
+let score = 0;
 const canvas = document.querySelector("#canvas");
 let camera, scene, renderer;
 let world;
@@ -14,6 +16,11 @@ let overhangStack = [];
 const clock = new THREE.Clock();
 
 init();
+
+function updateScore(newScore) {
+  score += newScore;
+  scoreElement.textContent = `Score: ${score}`;
+}
 
 function init() {
   //Initialise CANNON.js
@@ -137,6 +144,10 @@ function generateBox(x, y, z, width, depth, ifFalls) {
   };
 }
 
+function calculate_overlap_score(overlap_percentage) {
+  return Math.round(overlap_percentage / 10);
+}
+
 function startGame() {
   if (!gameStarted) {
     renderer.setAnimationLoop(animation);
@@ -158,6 +169,18 @@ function startGame() {
     const overlap = size - overHangSize;
 
     if (overlap > 0) {
+      const overlapPercentage = (overlap / size) * 100;
+
+      // Calculate score based on overlap percentage
+      const newScore = calculate_overlap_score(overlapPercentage);
+
+      // Add score to the game logic (example: display score on console)
+      console.log("Overlap Percentage:", overlapPercentage);
+      console.log("Score:", score);
+
+      //Update the score
+      updateScore(newScore);
+
       //Cut the layer
       const newWidth = direction == "x" ? overlap : topLayer.width;
       const newDepth = direction == "z" ? overlap : topLayer.depth;
