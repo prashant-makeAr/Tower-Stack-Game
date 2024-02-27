@@ -50,6 +50,7 @@
   
 
 #score {
+    display: none;
     position: absolute;
     top: 30px;
     right: 30px;

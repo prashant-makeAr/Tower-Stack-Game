@@ -26,6 +26,8 @@ init();
 // Function to handle start button click
 function handleStartButtonClick() {
   startScreen.style.display = "none"; // Hide start screen
+  scoreElement.style.display = "block";
+
   document.getElementById("canvas").style.display = "block"; // Show game canvas
   startGame(); // Start the game
 }
