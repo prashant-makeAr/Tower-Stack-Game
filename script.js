@@ -10,6 +10,7 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 let score = 0;
 const canvas = document.querySelector("#canvas");
 let camera, scene, renderer;
+let particles;
 let world;
 let overlap;
 
@@ -23,13 +24,12 @@ const clock = new THREE.Clock();
 
 init();
 
-// Function to handle start button click
 function handleStartButtonClick() {
-  startScreen.style.display = "none"; // Hide start screen
+  startScreen.style.display = "none";
   scoreElement.style.display = "block";
 
-  document.getElementById("canvas").style.display = "block"; // Show game canvas
-  startGame(); // Start the game
+  document.getElementById("canvas").style.display = "block";
+  startGame();
 }
 
 startButton.addEventListener("click", handleStartButtonClick);
@@ -87,6 +87,38 @@ function init() {
 
   //First Layer
   addLayer(-10, 0, originalBoxSize, originalBoxSize, "x");
+
+  //Adding Stars
+  const particleGeometry = new THREE.BufferGeometry();
+  const count = 5000;
+
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+
+  for (let i = 0; i < count * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 100;
+    colors[i] = Math.random();
+  }
+
+  particleGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
+
+  particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+  const particlesMaterial = new THREE.PointsMaterial({
+    size: 0.05,
+    sizeAttenuation: true,
+  });
+
+  particlesMaterial.transparent = true;
+  particlesMaterial.depthWrite = false;
+  particlesMaterial.vertexColors = true;
+  particlesMaterial.blending = THREE.AdditiveBlending;
+
+  particles = new THREE.Points(particleGeometry, particlesMaterial);
+  scene.add(particles);
 
   //Set-up Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -200,9 +232,6 @@ function calculate_overlap_score(overlap_percentage) {
 function startGame() {
   if (!gameStarted) {
     renderer.setAnimationLoop(animation);
-    // startAnimation();
-    // gameStarted = true;
-
     window.addEventListener("click", () => {
       gameStarted = true;
     });
@@ -376,10 +405,15 @@ function animation() {
     element.threejs.quaternion.copy(element.cannonjs.quaternion);
   });
 
+  particles.rotation.x = 0.002 * elapsedTime;
+  particles.rotation.y = 0.002 * elapsedTime;
+  particles.rotation.z = -0.002 * elapsedTime;
+
   // 4 is the initial camera height
   let cameraTargetY = boxHeight * (stack.length - 2) + 15;
   if (camera.position.y < cameraTargetY) {
     camera.position.y += elapsedTime * 0.02;
+    particles.position.y += elapsedTime * 0.02;
   }
 
   renderer.render(scene, camera);
@@ -387,6 +421,7 @@ function animation() {
 
 window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio); // Add this line
 
   const height = 25;
   const width = height * (window.innerWidth / window.innerHeight);
