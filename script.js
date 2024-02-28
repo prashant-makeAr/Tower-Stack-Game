@@ -82,8 +82,18 @@ function init() {
   //Initialise THREE.js
   scene = new THREE.Scene();
 
+  //Set-up Lights
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  directionalLight.castShadow = true;
+  directionalLight.position.set(2, 10, 2);
+
+  scene.add(directionalLight);
+
   //Foundation
-  addLayer(0, 0, 18, 18);
+  addLayer(0, 0, 12, 12);
 
   //First Layer
 
@@ -124,13 +134,6 @@ function init() {
   particles = new THREE.Points(particleGeometry, particlesMaterial);
   scene.add(particles);
 
-  //Set-up Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  scene.add(directionalLight);
-
   //Camera
   const height = 25;
   const width = height * (window.innerWidth / window.innerHeight);
@@ -143,7 +146,7 @@ function init() {
     500
   );
 
-  camera.position.set(12, 12, 12);
+  camera.position.set(12, 12, 18);
   camera.lookAt(0, 0, 0);
 
   //Renderer
@@ -173,6 +176,9 @@ function generateBox(x, y, z, width, depth, ifFalls) {
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(x, y, z);
+
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
   scene.add(mesh);
 
   //CANNON.js
@@ -186,8 +192,8 @@ function generateBox(x, y, z, width, depth, ifFalls) {
     defaultMaterial,
     defaultMaterial,
     {
-      friction: 0.01,
-      restitution: 0.8,
+      friction: 0.1,
+      restitution: 0.5,
     }
   );
 
