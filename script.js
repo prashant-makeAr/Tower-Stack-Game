@@ -41,7 +41,7 @@ function updateScore(newScore) {
 
 function endGame() {
   gameEnd.style.display = "flex";
-  finalScore.textContent = `Your Score - ${score}`;
+  finalScore.textContent = `Your Score : ${score}`;
   endBtn.addEventListener("click", handleReplayButtonClick);
 }
 
