@@ -81,7 +81,7 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
     });
 
     const splash = new THREE.Mesh(splashGeometry, splashMaterial);
-    splash.position.set(x, boxHeight * (stack.length - 1) + 0.1, z);
+    splash.position.set(x, boxHeight * (stack.length - 1) - 0.5, z);
     splash.rotation.x = -Math.PI / 2;
 
     scene.add(splash);
