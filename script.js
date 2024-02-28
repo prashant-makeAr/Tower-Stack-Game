@@ -1,5 +1,6 @@
 //Import
 import * as THREE from "three";
+import * as TWEEN from "@tweenjs/tween.js";
 import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 
 (() => {
@@ -69,6 +70,41 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
     startScreen.style.display = "flex";
 
     window.location.reload();
+  }
+
+  function performSplashAnimation(x, z, width, depth) {
+    const splashGeometry = new THREE.PlaneGeometry(width, depth);
+    const splashMaterial = new THREE.MeshBasicMaterial({
+      color: 0x0000ff,
+      transparent: true,
+      opacity: 0.5,
+    });
+
+    const splash = new THREE.Mesh(splashGeometry, splashMaterial);
+    splash.position.set(x, boxHeight * (stack.length - 1) + 0.1, z);
+    splash.rotation.x = -Math.PI / 2;
+
+    scene.add(splash);
+
+    // Animate the splash opacity
+    const splashAnimationDuration = 1000;
+    const fadeInDuration = 500;
+    const fadeOutDelay = 500;
+
+    new TWEEN.Tween(splashMaterial)
+      .to({ opacity: 0.5 }, fadeInDuration)
+      .onComplete(() => {
+        // Fade out after delay
+        setTimeout(() => {
+          new TWEEN.Tween(splashMaterial)
+            .to({ opacity: 0 }, splashAnimationDuration - fadeInDuration)
+            .onComplete(() => {
+              scene.remove(splash);
+            })
+            .start();
+        }, fadeOutDelay);
+      })
+      .start();
   }
 
   function init() {
@@ -260,13 +296,6 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
         //Update the score
         updateScore(newScore);
 
-        if (newScore == 10) {
-          document.getElementById("prompt").style.display = "block";
-          setTimeout(() => {
-            document.getElementById("prompt").style.display = "none";
-          }, 2000);
-        }
-
         //Cut the layer
         const newWidth = direction == "x" ? overlap : topLayer.width;
         const newDepth = direction == "z" ? overlap : topLayer.depth;
@@ -305,6 +334,20 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
         const nextZ = direction === "z" ? topLayer.threejs.position.z : -10;
         const nextDirection = direction === "x" ? "z" : "x";
         addLayer(nextX, nextZ, newWidth, newDepth, nextDirection);
+
+        if (newScore == 10) {
+          document.getElementById("prompt").style.display = "block";
+          setTimeout(() => {
+            document.getElementById("prompt").style.display = "none";
+          }, 1000);
+
+          performSplashAnimation(
+            topLayer.threejs.position.x,
+            topLayer.threejs.position.z,
+            newWidth + 1,
+            newDepth + 1
+          );
+        }
       } else if (overlap <= 0) {
         endGame();
         renderer.setAnimationLoop(null);
@@ -363,6 +406,7 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
       element.threejs.position.copy(element.cannonjs.position);
       element.threejs.quaternion.copy(element.cannonjs.quaternion);
     });
+    TWEEN.update();
 
     particles.rotation.x = 0.002 * elapsedTime;
     particles.rotation.y = 0.002 * elapsedTime;

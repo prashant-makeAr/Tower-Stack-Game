@@ -62,7 +62,7 @@
 #prompt {
   display: none;
   position: absolute;
-  top: 35%;
+  top: 20%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 1.8rem;
