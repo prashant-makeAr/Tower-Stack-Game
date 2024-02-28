@@ -171,7 +171,7 @@ function generateBox(x, y, z, width, depth, ifFalls) {
   // THREE.js
   const geometry = new THREE.BoxGeometry(width, boxHeight, depth);
 
-  const color = new THREE.Color(`hsl(${30 + stack.length * 4}, 100% , 50% )`);
+  const color = new THREE.Color(`hsl(${30 + stack.length * 7}, 100% , 50% )`);
   const material = new THREE.MeshStandardMaterial({ color });
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -274,6 +274,13 @@ function startGame() {
       //Update the score
       updateScore(newScore);
 
+      if (newScore == 10) {
+        document.getElementById("prompt").style.display = "block";
+        setTimeout(() => {
+          document.getElementById("prompt").style.display = "none";
+        }, 2000);
+      }
+
       //Cut the layer
       const newWidth = direction == "x" ? overlap : topLayer.width;
       const newDepth = direction == "z" ? overlap : topLayer.depth;
@@ -317,6 +324,12 @@ function startGame() {
       renderer.setAnimationLoop(null);
       return;
     }
+    // else if (overlap >= size) {
+    //   document.getElementById("prompt").style.display = "block";
+    //   setTimeout(() => {
+    //     document.getElementById("prompt").style.display = "none";
+    //   }, 2000);
+    // }
 
     //Next Layer
     // const newWidth = originalBoxSize;
