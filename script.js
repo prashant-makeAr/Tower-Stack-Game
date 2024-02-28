@@ -75,7 +75,7 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
   function performSplashAnimation(x, z, width, depth) {
     const splashGeometry = new THREE.PlaneGeometry(width, depth);
     const splashMaterial = new THREE.MeshBasicMaterial({
-      color: 0x0000ff,
+      color: "#A8A9AD",
       transparent: true,
       opacity: 0.5,
     });
