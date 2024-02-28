@@ -151,6 +151,7 @@ function init() {
 
   //Renderer
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   renderer.render(scene, camera);
@@ -444,7 +445,7 @@ function animation() {
 
 window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio); // Add this line
+  renderer.setPixelRatio(window.devicePixelRatio);
 
   const height = 25;
   const width = height * (window.innerWidth / window.innerHeight);
