@@ -83,6 +83,10 @@ function init() {
   scene = new THREE.Scene();
 
   //Foundation
+  addLayer(0, 0, 18, 18);
+
+  //First Layer
+
   addLayer(0, 0, originalBoxSize, originalBoxSize);
 
   //First Layer
@@ -139,7 +143,7 @@ function init() {
     500
   );
 
-  camera.position.set(15, 15, 15);
+  camera.position.set(12, 12, 12);
   camera.lookAt(0, 0, 0);
 
   //Renderer
@@ -334,16 +338,16 @@ function addOverHang(x, z, width, depth) {
 
   if (direction === "x") {
     if (x > topLayer.threejs.position.x) {
-      overHangX = x + width / 2 + 0.2;
+      overHangX = x + width / 2 + 0.1;
     } else {
-      overHangX = x - width / 2 - 0.2;
+      overHangX = x - width / 2 - 0.1;
     }
     overHangZ = z;
   } else {
     if (z > topLayer.threejs.position.z) {
-      overHangZ = z + depth / 2 + 0.2;
+      overHangZ = z + depth / 2 + 0.1;
     } else {
-      overHangZ = z - depth / 2 - 0.2;
+      overHangZ = z - depth / 2 - 0.1;
     }
     overHangX = x;
   }
@@ -410,7 +414,7 @@ function animation() {
   particles.rotation.z = -0.002 * elapsedTime;
 
   // 4 is the initial camera height
-  let cameraTargetY = boxHeight * (stack.length - 2) + 15;
+  let cameraTargetY = boxHeight * (stack.length - 2) + 10;
   if (camera.position.y < cameraTargetY) {
     camera.position.y += elapsedTime * 0.02;
     particles.position.y += elapsedTime * 0.02;
