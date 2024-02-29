@@ -3,7 +3,7 @@ import * as THREE from "three";
 import * as TWEEN from "@tweenjs/tween.js";
 import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
 
-(() => {
+
   // Variables
   const canvas = document.querySelector("#canvas");
   const scoreContainer = document.getElementById("score");
@@ -465,4 +465,4 @@ import CANNON, { ContactMaterial, SAPBroadphase } from "cannon";
   startBtn.addEventListener("click", handlestartBtnClick);
 
   endBtn.addEventListener("click", handleReplayButtonClick);
-})();
+
