@@ -419,7 +419,7 @@ function animation() {
 
 // Eventlisteners
 
-window.addEventListener("click", startGame);
+// window.addEventListener("click", startGame);
 canvas.addEventListener("click", startGame);
 
 window.addEventListener("keydown", (e) => {
